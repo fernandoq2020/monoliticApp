@@ -1,0 +1,37 @@
+<?php
+
+use Core\Sessions;
+use Core\ValidationException;
+
+const BASE_PATH = __DIR__.'/../';
+
+require BASE_PATH.'vendor/autoload.php';
+
+session_start();
+
+require BASE_PATH.'Core/functions.php';
+
+require base_path('boostrap.php');
+
+$router = new Core\Router();
+
+$routes = require base_path('routes.php');
+$uri = parse_url($_SERVER['REQUEST_URI'])['path'];
+
+$method = $_POST['_method'] ?? $_SERVER['REQUEST_METHOD'];
+
+try {
+   
+    $router->route($uri, $method);
+   
+} catch (ValidationException $exc) {
+    Sessions::flash('errors', $exc->errors);
+    Sessions::flash('old', $exc->old);
+
+    redirect($router->previousUrl());
+}
+
+
+
+
+Sessions::unflash();
